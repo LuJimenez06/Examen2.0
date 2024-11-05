@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Maestro - Exámenes Creados</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        h1 { color: #333; text-align: center; }
+        #materiaSelect, #examenSelect, #cargarExamen, #imprimirExamen, #enviarRespuestas {
+            padding: 10px; font-size: 1em; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px;
+            width: 100%; max-width: 300px; display: block; margin-left: auto; margin-right: auto;
+        }
+        #cuestionario {
+            margin-top: 20px; background-color: white; padding: 20px; border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .pregunta { margin-bottom: 20px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 5px; background-color: #fafafa; }
+        .pregunta p { margin: 0; font-weight: bold; }
+        label { display: block; margin: 5px 0; font-size: 0.9em; }
+        input[type="text"] { width: calc(100% - 20px); padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+        #tituloExamen { text-align: center; font-size: 1.5em; color: #555; margin-top: 20px; }
+        #nombreAlumno { text-align: center; font-size: 1.5em; color: #555; margin-top: 20px; }
+        #resultadoCalificacion { text-align: center; font-size: 1.5em; color: #555; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <!-- Barra de navegación -->
+    <nav class="navbar">
+        <div class="navbar-brand">Panel de Alumnos</div>
+        <ul class="navbar-menu">
+            <li><a href="alumno.html?studentId=alumno1">Inicio</a></li>
+            <li><a href="datos_alumno.html?studentId=alumno1">Datos Personales</a></li>
+            <li><a href="materias.html?studentId=alumno1">Materias</a></li>
+            <li><a href="examenes_alumno.html?studentId=alumno1">Exámenes</a></li>
+            <li><a href="index.html" id="logout">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+    <br>
+    
+    <h1>Exámenes Creados</h1>
+
+    <div id="nombreAlumno"></div>
+    <div id="resultadoCalificacion"></div>
+    
+    <select id="materiaSelect">
+        <option value="">Selecciona una Materia</option>
+        <option value="Matematicas">Matemáticas</option>
+    </select>
+    
+    <select id="examenSelect">
+        <option value="">Selecciona un Examen</option>
+    </select>
+    
+    <button id="cargarExamen">Cargar Examen</button>
+    <h2 id="tituloExamen"></h2>
+    <div id="cuestionario"></div>
+    <button id="enviarRespuestas">Enviar Respuestas</button>
+    <div id="resultadoCalificacion"></div>
+    <script type="module">
+        // Importar Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjRRBzlhKPtp74LoxjHpgPlg-CtGLyg-Y",
+            authDomain: "examen-e836d.firebaseapp.com",
+            projectId: "examen-e836d",
+            storageBucket: "examen-e836d.appspot.com",
+            messagingSenderId: "900551617182",
+            appId: "1:900551617182:web:3925b64bd5579711d1e98f",
+            databaseURL: "https://examen-e836d-default-rtdb.firebaseio.com/"
+        };
+    
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+    
+        // Obtener ID del alumno a partir del nombre de usuario
+        async function getStudentIdByUsername(username) {
+            try {
+                const usersRef = ref(database, 'usuarios/');
+                const snapshot = await get(usersRef);
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    for (let id in users) {
+                        if (users[id].username === username) {
+                            return id; // Devuelve el ID del alumno
+                        }
+                    }
+                }
+                return null; // No se encontró el usuario
+            } catch (error) {
+                console.error("Error al obtener el ID del estudiante:", error);
+                alert("Ocurrió un error al obtener tus datos. Por favor, intenta de nuevo más tarde.");
+                return null; // Asegurarse de que se devuelva null en caso de error
+            }
+        }
+    
+        // Cuando se carga la página
+        document.addEventListener('DOMContentLoaded', async () => {
+            const username = localStorage.getItem('username');
+            const alumnoId = await getStudentIdByUsername(username);
+    
+            if (!alumnoId) {
+                alert('No se encontró un alumno asociado a este usuario.');
+                return; // Detener la ejecución si no hay un ID válido
+            }
+    
+            const materiaSelect = document.getElementById("materiaSelect");
+            const examenSelect = document.getElementById("examenSelect");
+            const cargarExamenBtn = document.getElementById("cargarExamen");
+            const cuestionarioDiv = document.getElementById("cuestionario");
+            const tituloExamen = document.getElementById("tituloExamen");
+            const enviarRespuestasBtn = document.getElementById("enviarRespuestas");
+            const nombreAlumnoDiv = document.getElementById("nombreAlumno");
+    
+            // Mostrar el nombre del alumno
+            nombreAlumnoDiv.textContent = username;
+    
+            materiaSelect.addEventListener("change", () => {
+                const materiaSeleccionada = materiaSelect.value;
+                examenSelect.innerHTML = '<option value="">Selecciona un Examen</option>';
+                if (materiaSeleccionada) {
+                    onValue(ref(database, 'examenes'), (snapshot) => {
+                        const examenes = snapshot.val();
+                        for (let id in examenes) {
+                            const examen = examenes[id];
+                            if (examen.materia === materiaSeleccionada) {
+                                const option = document.createElement("option");
+                                option.value = id;
+                                option.textContent = examen.nombre ? examen.nombre : "Título no disponible";
+                                examenSelect.appendChild(option);
+                            }
+                        }
+                    });
+                }
+            });
+    
+            // Al cargar el examen
+            cargarExamenBtn.addEventListener("click", async () => {
+                const examenId = examenSelect.value;
+                if (examenId) {
+                    // Verificar si el alumno tiene asignado el examen
+                    const examenRef = ref(database, `alumnos/${alumnoId}/examenes/${examenId}`);
+                    const examenSnapshot = await get(examenRef);
+                    
+                    if (!examenSnapshot.exists()) {
+                        alert('No tienes acceso a este examen.');
+                        return; // Detener la ejecución si no hay examen asignado
+                    }
+    
+                    // Cargar el título del examen
+                    onValue(ref(database, `examenes/${examenId}`), (snapshot) => {
+                        const examen = snapshot.val();
+                        tituloExamen.textContent = examen.nombre ? examen.nombre : "Título no disponible";
+                    });
+    
+                    // Cargar las preguntas del examen
+                    onValue(ref(database, `examenes/${examenId}/preguntas`), (snapshot) => {
+                        const preguntas = snapshot.val();
+                        cuestionarioDiv.innerHTML = ''; // Limpiar preguntas anteriores
+                        for (let id in preguntas) {
+                            const preguntaObj = preguntas[id];
+                            const preguntaDiv = document.createElement("div");
+                            preguntaDiv.classList.add("pregunta");
+                            preguntaDiv.innerHTML = `<p><strong>Pregunta:</strong> ${preguntaObj.pregunta}</p>`;
+                            if (preguntaObj.opciones) {
+                                preguntaDiv.innerHTML += `<div>`;
+                                for (const [key, value] of Object.entries(preguntaObj.opciones)) {
+                                    preguntaDiv.innerHTML += `<label><input type="radio" name="${id}" value="${key}"> ${key}: ${value}</label><br>`;
+                                }
+                                preguntaDiv.innerHTML += `</div>`;
+                            }
+                            cuestionarioDiv.appendChild(preguntaDiv);
+                        }
+                    });
+                }
+            });
+    
+            enviarRespuestasBtn.addEventListener("click", () => {
+                const respuestas = {};
+                const preguntas = cuestionarioDiv.querySelectorAll('.pregunta');
+
+                preguntas.forEach((preguntaDiv) => {
+                    const respuestaSeleccionada = preguntaDiv.querySelector('input[type="radio"]:checked');
+                    
+                    if (respuestaSeleccionada) {
+                        const preguntaId = respuestaSeleccionada.name; // ID de la pregunta
+                        respuestas[preguntaId] = respuestaSeleccionada.value; // Guardar respuesta
+                    } else {
+                        const preguntaId = preguntaDiv.querySelector('input[type="radio"]').name; // Obtener ID aunque no haya respuesta
+                        respuestas[preguntaId] = null; // No se seleccionó respuesta
+                    }
+                });
+
+                const examenId = examenSelect.value;
+
+                // Guardar respuestas en Firebase
+                const respuestasRef = ref(database, `alumnos/${alumnoId}/examenes/${examenId}/respuestas`);
+                set(respuestasRef, respuestas).then(() => {
+                    // Comparar respuestas con las soluciones
+                    onValue(ref(database, `examenes/${examenId}/preguntas`), (snapshot) => {
+                        const preguntas = snapshot.val();
+                        let respuestasCorrectas = 0;
+                        const totalPreguntas = Object.keys(preguntas).length; // Total de preguntas
+
+                        for (const [id, pregunta] of Object.entries(preguntas)) {
+                            // Mostrar valores para depuración
+                            console.log(`Comparando ID: ${id}, Respuesta del alumno: ${respuestas[id]}, Solución: ${pregunta.solucion}`);
+                            
+                            if (respuestas[id] === pregunta.solucion) {
+                                respuestasCorrectas++;
+                            }
+                        }
+
+                        // Calcular calificación
+                        const calificacion = (respuestasCorrectas / totalPreguntas) * 100;
+
+                        // Guardar calificación en Firebase
+                        const calificacionRef = ref(database, `alumnos/${alumnoId}/materias/PLQV8S/calificaciones/${examenId}`);
+                        set(calificacionRef, calificacion).then(() => {
+                            alert(`Respuestas enviadas. Calificación: ${calificacion.toFixed(2)}%`);
+                        });
+                    });
+                }).catch((error) => {
+                    console.error("Error al guardar las respuestas:", error);
+                    alert("Ocurrió un error al enviar tus respuestas. Intenta nuevamente más tarde.");
+                });
+            });
+        });
+    </script>      
+</body>
+</html>

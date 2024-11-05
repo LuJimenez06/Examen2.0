@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Maestro</title>
+    <link rel="stylesheet" href="maestro.css">
+    <link rel="stylesheet" href="lista.css">
+    <style>
+        /* Estilo para la foto de perfil */
+        .user-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%; /* Para hacerla circular */
+            object-fit: cover; /* Para mantener la relación de aspecto */
+        }
+    </style>
+    <script src="auth.js"></script>
+</head>
+<body>
+    <!-- Barra de navegación -->
+    <nav class="navbar">
+        <div class="navbar-brand">Panel de Maestro</div>
+        <ul class="navbar-menu">
+            <li><a href="maestro.html?maestroId=maestro1">Inicio</a></li>
+            <li><a href="datos_maestro.html?maestroId=maestro1">Datos</a></li>
+            <li class="dropdown">
+                <a href="#" onclick="toggleDropdown(event)">Ver Exámenes</a>
+                <div class="dropdown-content">
+                    <a href="crear_examen.html?maestroId=maestro1">Crear Examen</a>
+                    <a href="ver_examenes.html?maestroId=maestro1">Preview de Examen</a>
+                    <a href="imprimir_examen.html?maestroId=maestro1">Imprimir Examen</a>
+                    <a href="calificar_examen.html?maestroId=maestro1">Calificar Examen</a>
+                    <a href="resultados_examenes.html?maestroId=maestro1">Resultados de Exámenes</a>
+                </div>
+            </li>
+            <li><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <!-- Muestra el nombre del usuario -->        
+    <div class="user-info" id="user-info"></div>
+    
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <h1>Bienvenido, Maestro</h1>
+        <p>En este panel puedes gestionar tus datos, crear exámenes y visualizar el rendimiento de tus alumnos.</p>
+        
+        <div class="dashboard-sections">
+            <section>
+                <h2>Datos del Maestro</h2>
+                <p>Ver y editar tu perfil y datos personales.</p>
+                <button onclick="location.href='datos_maestro.html'">Ir a Datos</button>
+            </section>
+            
+            <section>
+                <h2>Crear Examen</h2>
+                <p>Crea un nuevo examen para tus alumnos con preguntas personalizadas.</p>
+                <button onclick="location.href='crear_examen.html'">Crear Examen</button>
+            </section>
+            
+            <section>
+                <h2>Ver Exámenes</h2>
+                <p>Visualiza y administra los exámenes ya creados.</p>
+                <button onclick="location.href='ver_examenes.html'">Ver Exámenes</button>
+            </section>
+
+            <section>
+                <h2>Imprimir Examen</h2>
+                <p>Imprime los exámenes que has creado.</p>
+                <button onclick="location.href='imprimir_examen.html'">Imprimir Examen</button>
+            </section>
+            
+            <section>
+                <h2>Calificar Examen</h2>
+                <p>Califica los exámenes de tus alumnos.</p>
+                <button onclick="location.href='calificar_examen.html'">Calificar Examen</button>
+            </section>
+            
+            <section>
+                <h2>Resultados de los Exámenes</h2>
+                <p>Visualiza los resultados de los exámenes realizados.</p>
+                <button onclick="location.href='resultados_examenes.html'">Ver Resultados</button>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // Función para alternar la visibilidad del contenido desplegable
+        function toggleDropdown(event) {
+            event.preventDefault();
+            const dropdownContent = event.target.nextElementSibling;
+            dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Maestro - Exámenes Creados</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> <!-- Agrega jsPDF -->
+    <style>
+        h1 { color: #333; text-align: center; }
+        #materiaSelect, #examenSelect, #cargarExamen, #imprimirExamen {
+            padding: 10px; font-size: 1em; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px;
+            width: 100%; max-width: 300px; display: block; margin-left: auto; margin-right: auto;
+        }
+        #cuestionario {
+            margin-top: 20px; background-color: white; padding: 20px; border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .pregunta { margin-bottom: 20px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 5px; background-color: #fafafa; }
+        .pregunta p { margin: 0; font-weight: bold; }
+        label { display: block; margin: 5px 0; font-size: 0.9em; }
+        input[type="text"] { width: calc(100% - 20px); padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+        #tituloExamen { text-align: center; font-size: 1.5em; color: #555; margin-top: 20px; }
+    </style>
+    <script src="auth.js"></script>
+</head>
+<body>
+    <!-- Barra de navegación -->
+    <nav class="navbar">
+        <div class="navbar-brand">Panel de Maestro</div>
+        <ul class="navbar-menu">
+            <li><a href="maestro.html">Inicio</a></li>
+            <li><a href="datos_maestro.html">Datos</a></li>
+            <li class="dropdown">
+                <a href="#" onclick="toggleDropdown(event)">Ver Exámenes</a>
+                <div class="dropdown-content">
+                    <a href="crear_examen.html">Crear Examen</a>
+                    <a href="ver_examenes.html">Preview de Examen</a>
+                    <a href="imprimir_examen.html">Imprimir Examen</a>
+                    <a href="calificar_examen.html">Calificar Examen</a>
+                    <a href="resultados_examenes.html">Resultados de Exámenes</a>
+                </div>
+            </li>
+            <li><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+    <h1>Exámenes Creados</h1>
+    <!-- Selector de Materia -->
+    <select id="materiaSelect">
+        <option value="">Selecciona una Materia</option>
+        <option value="Matematicas">Matemáticas</option>
+        <option value="Español">Español</option>
+        <option value="Historia">Historia</option>
+        <option value="Geografia">Geografía</option>
+        <option value="Biologia">Biología</option>
+        <option value="Fisica">Física</option>
+        <option value="Quimica">Química</option>
+        <option value="Civica">Cívica</option>
+        <option value="Artes">Artes</option>
+        <option value="Informatica">Informática</option>
+        <option value="Etica">Ética</option>
+        <!-- Agrega más materias según sea necesario -->
+    </select>
+    <!-- Selector de Examen -->
+    <select id="examenSelect">
+        <option value="">Selecciona un Examen</option>
+    </select>
+    <button id="cargarExamen">Cargar Examen</button>
+    <button id="imprimirExamen">Imprimir PDF</button>
+    <h2 id="tituloExamen"></h2>
+    <!-- Elemento para mostrar el título del examen -->
+    <div id="cuestionario"></div>
+    <!-- Firebase y JavaScript -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjRRBzlhKPtp74LoxjHpgPlg-CtGLyg-Y",
+            authDomain: "examen-e836d.firebaseapp.com",
+            projectId: "examen-e836d",
+            storageBucket: "examen-e836d.appspot.com",
+            messagingSenderId: "900551617182",
+            appId: "1:900551617182:web:3925b64bd5579711d1e98f",
+            databaseURL: "https://examen-e836d-default-rtdb.firebaseio.com/"
+        };
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const materiaSelect = document.getElementById("materiaSelect");
+        const examenSelect = document.getElementById("examenSelect");
+        const cargarExamenBtn = document.getElementById("cargarExamen");
+        const imprimirExamenBtn = document.getElementById("imprimirExamen");
+        const cuestionarioDiv = document.getElementById("cuestionario");
+        const tituloExamen = document.getElementById("tituloExamen");
+
+        // Al cambiar la materia, carga los exámenes correspondientes
+        materiaSelect.addEventListener("change", () => {
+            const materiaSeleccionada = materiaSelect.value;
+            examenSelect.innerHTML = '<option value="">Selecciona un Examen</option>';
+            if (materiaSeleccionada) {
+                // Obtener y filtrar los exámenes según la materia seleccionada
+                onValue(ref(database, 'examenes'), (snapshot) => {
+                    const examenes = snapshot.val();
+                    for (let id in examenes) {
+                        const examen = examenes[id];
+                        if (examen.materia === materiaSeleccionada) {
+                            const option = document.createElement("option");
+                            option.value = id;
+                            option.textContent = examen.nombre ? examen.nombre : "Título no disponible";
+                            examenSelect.appendChild(option);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Cargar preguntas del examen seleccionado
+        cargarExamenBtn.addEventListener("click", () => {
+            const examenId = examenSelect.value;
+            if (examenId) {
+                // Primero, cargar el nombre del examen
+                onValue(ref(database, `examenes/${examenId}`), (snapshot) => {
+                    const examen = snapshot.val();
+                    tituloExamen.textContent = examen.nombre ? examen.nombre : "Título no disponible";
+                });
+
+                // Luego, cargar las preguntas del examen
+                onValue(ref(database, `examenes/${examenId}/preguntas`), (snapshot) => {
+                    const preguntas = snapshot.val();
+                    cuestionarioDiv.innerHTML = '';
+                    for (let id in preguntas) {
+                        const preguntaObj = preguntas[id];
+                        const preguntaDiv = document.createElement("div");
+                        preguntaDiv.classList.add("pregunta");
+                        // Agregar la pregunta
+                        preguntaDiv.innerHTML = `<p><strong>Pregunta:</strong> ${preguntaObj.pregunta}</p>`;
+                        if (preguntaObj.opciones) { // Pregunta de selección múltiple
+                            preguntaDiv.innerHTML += `<div>`;
+                            for (const [key, value] of Object.entries(preguntaObj.opciones)) {
+                                preguntaDiv.innerHTML += `<label><input type="radio" name="${id}" value="${key}"> ${key}: ${value}</label><br>`;
+                            }
+                            preguntaDiv.innerHTML += `</div>`;
+                        }
+                        cuestionarioDiv.appendChild(preguntaDiv);
+                    }
+                });
+            }
+        });
+
+        // Funcionalidad para imprimir el examen como PDF
+        imprimirExamenBtn.addEventListener("click", () => {
+            const examenId = examenSelect.value;
+            if (examenId) {
+                const doc = window.jspdf.jsPDF();
+                doc.setFontSize(16);
+                doc.text(tituloExamen.textContent, 10, 10);
+                doc.setFontSize(12);
+
+                let y = 20; // Posición vertical inicial
+                const preguntas = cuestionarioDiv.querySelectorAll('.pregunta');
+                preguntas.forEach((preguntaDiv, index) => {
+                    const preguntaTexto = preguntaDiv.querySelector('p').innerText;
+                    doc.text(`${index + 1}. ${preguntaTexto}`, 10, y);
+                    y += 10;
+
+                    const opciones = preguntaDiv.querySelectorAll('label');
+                    opciones.forEach(opcion => {
+                        doc.text(opcion.innerText, 10, y);
+                        y += 10;
+                    });
+                    y += 5; // Espacio entre preguntas
+                });
+
+                // Guardar el PDF
+                doc.save(`${tituloExamen.textContent || "examen"}.pdf`);
+            } else {
+                alert("Por favor, selecciona un examen.");
+            }
+        });
+
+    </script>
+</body>
+</html>

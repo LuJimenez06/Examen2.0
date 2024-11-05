@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos del Maestro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="datos_maestro.css">
+    <script type="module">
+        // Importar Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+        import { getDatabase, ref, set, get } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjRRBzlhKPtp74LoxjHpgPlg-CtGLyg-Y",
+            authDomain: "examen-e836d.firebaseapp.com",
+            projectId: "examen-e836d",
+            storageBucket: "examen-e836d.appspot.com",
+            messagingSenderId: "900551617182",
+            appId: "1:900551617182:web:3925b64bd5579711d1e98f",
+            databaseURL: "https://examen-e836d-default-rtdb.firebaseio.com/"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Obtener ID del maestro a partir del nombre de usuario
+        async function getTeacherIdByUsername(username) {
+            const usersRef = ref(database, 'usuarios/'); // Cambiar según tu estructura
+            const snapshot = await get(usersRef);
+            if (snapshot.exists()) {
+                const users = snapshot.val();
+                for (let id in users) {
+                    if (users[id].username === username) {
+                        return id; // Devuelve el ID del maestro
+                    }
+                }
+            }
+            return null; // No se encontró el usuario
+        }
+
+        // Cargar los datos del maestro
+        async function loadTeacherData(teacherId) {
+            const teacherRef = ref(database, 'maestros/' + teacherId);
+            try {
+                const snapshot = await get(teacherRef);
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    document.getElementById('nombreReal').value = data.nombreReal || '';
+                    document.getElementById('nuevoCorreo').value = data.nuevoCorreo || '';
+                    document.getElementById('edad').value = data.edad || '';
+                    document.getElementById('telefono').value = data.telefono || '';
+                    document.getElementById('direccion').value = data.direccion || '';
+                    document.getElementById('contrasena').value = data.contrasena || '';
+
+                    // Activar checkboxes y mostrar códigos
+                    if (data.materias) {
+                        Object.keys(data.materias).forEach(codigo => {
+                            const checkbox = document.getElementById(`materia_${data.materias[codigo].toLowerCase()}`);
+                            if (checkbox) {
+                                checkbox.checked = true; // Activar el checkbox
+                                // Generar y mostrar el código
+                                const p = document.createElement('p');
+                                const codigoMateria = generateSubjectCode(data.materias[codigo]);
+                                p.textContent = `${data.materias[codigo]}: ${codigoMateria}`;
+                                document.getElementById('subject-codes').appendChild(p);
+                            }
+                        });
+                    }
+                } else {
+                    alert('No se encontraron datos para este maestro.');
+                }
+            } catch (error) {
+                console.error('Error al cargar los datos:', error);
+                alert('Ocurrió un error al cargar los datos.');
+            }
+        }
+
+        // Generar códigos de materia
+        function generateSubjectCode(materiaNombre) {
+            return `MAT-${materiaNombre.slice(0, 3).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
+        }
+
+        // Cuando se carga la página
+        document.addEventListener('DOMContentLoaded', async () => {
+            const username = localStorage.getItem('username'); // O de donde lo estés obteniendo
+            const teacherId = await getTeacherIdByUsername(username); // Obtener ID de maestro
+
+            if (!teacherId) {
+                alert('No se encontró un maestro asociado a este usuario.');
+                return; // Detener la ejecución si no hay un ID válido
+            }
+
+            // Cargar los datos del maestro
+            loadTeacherData(teacherId);
+
+            // Agregar evento a los checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const selectedMaterias = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                        .map(checkbox => checkbox.value);
+
+                    // Mostrar códigos de materias seleccionadas
+                    const codesContainer = document.getElementById('subject-codes');
+                    codesContainer.innerHTML = ''; // Limpiar el contenedor
+                    selectedMaterias.forEach(materia => {
+                        const codigo = generateSubjectCode(materia);
+                        const p = document.createElement('p');
+                        p.textContent = `${materia}: ${codigo}`;
+                        codesContainer.appendChild(p);
+                    });
+                });
+            });
+
+            document.getElementById('teacher-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const selectedMaterias = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                    .map(checkbox => checkbox.value);
+
+                // Guardar datos del maestro
+                const teacherData = {
+                    nombreReal: document.getElementById('nombreReal').value,
+                    nuevoCorreo: document.getElementById('nuevoCorreo').value,
+                    edad: document.getElementById('edad').value,
+                    telefono: document.getElementById('telefono').value,
+                    direccion: document.getElementById('direccion').value,
+                    contrasena: document.getElementById('contrasena').value,
+                    materias: selectedMaterias // Solo nombres de materias, para guardar la relación
+                };
+
+                // Guardar el maestro en Firebase
+                try {
+                    await set(ref(database, 'maestros/' + teacherId), teacherData);
+                    alert('Datos del maestro guardados correctamente.');
+
+                    // Guardar las materias por separado
+                    const materiasData = {};
+                    selectedMaterias.forEach(materia => {
+                        const codigo = generateSubjectCode(materia);
+                        materiasData[codigo] = {
+                            codigo: codigo,
+                            maestro: teacherId, // ID del maestro relacionado
+                            materia: materia
+                        };
+                    });
+
+                    // Guardar las materias en Firebase
+                    for (const key in materiasData) {
+                        await set(ref(database, 'materias/' + key), materiasData[key]);
+                    }
+                    alert('Materias guardadas correctamente.');
+
+                } catch (error) {
+                    console.error('Error al guardar los datos:', error);
+                    alert('Ocurrió un error al guardar los datos. Por favor, intenta nuevamente.');
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">Panel de Maestro</div>
+        <ul class="navbar-menu">
+            <li><a href="maestro.html?maestroId=maestro1">Inicio</a></li>
+            <li><a href="datos_maestro.html?maestroId=maestro1">Datos</a></li>
+            <li class="dropdown">
+                <a href="#" onclick="toggleDropdown(event)">Ver Exámenes</a>
+                <div class="dropdown-content">
+                    <a href="crear_examen.html?maestroId=maestro1">Crear Examen</a>
+                    <a href="ver_examenes.html?maestroId=maestro1">Preview de Examen</a>
+                    <a href="imprimir_examen.html?maestroId=maestro1">Imprimir Examen</a>
+                    <a href="calificar_examen.html?maestroId=maestro1">Calificar Examen</a>
+                    <a href="resultados_examenes.html?maestroId=maestro1">Resultados de Exámenes</a>
+                </div>
+            </li>
+            <li><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <form id="teacher-form">
+            <h1>Datos del Maestro</h1>
+
+            <label for="nombreReal">Nombre Real:</label>
+            <input type="text" id="nombreReal" required>
+
+            <label for="nuevoCorreo">Correo Electrónico:</label>
+            <input type="email" id="nuevoCorreo" required>
+
+            <label for="edad">Edad:</label>
+            <input type="number" id="edad" required>
+
+            <label for="telefono">Teléfono:</label>
+            <input type="tel" id="telefono" required>
+
+            <label for="direccion">Dirección:</label>
+            <input type="text" id="direccion" required>
+
+            <label for="contrasena">Contraseña:</label>
+            <input type="password" id="contrasena" required>
+
+            <h2>Materias:</h2>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="materia_matematicas" value="Matematicas"> Matemáticas</label><br>
+                <label><input type="checkbox" id="materia_español" value="Español"> Español</label><br>
+                <label><input type="checkbox" id="materia_historia" value="Historia"> Historia</label><br>
+                <label><input type="checkbox" id="materia_geografia" value="Geografia"> Geografía</label><br>
+                <label><input type="checkbox" id="materia_biologia" value="Biologia"> Biología</label><br>
+                <label><input type="checkbox" id="materia_fisica" value="Fisica"> Física</label><br>
+                <label><input type="checkbox" id="materia_quimica" value="Quimica"> Química</label><br>
+                <label><input type="checkbox" id="materia_civica" value="Civica"> Cívica</label><br>
+                <label><input type="checkbox" id="materia_artes" value="Artes"> Artes</label><br>
+                <label><input type="checkbox" id="materia_informatica" value="Informatica"> Informática</label><br>                
+                <label><input type="checkbox" id="materia_etica" value="Etica"> Ética</label><br>
+            </div>
+
+            <h2>Códigos de Materias Seleccionadas:</h2>
+            <div id="subject-codes"></div>
+
+            <button type="submit">Guardar Datos</button>
+        </form>
+    </div>
+</body>
+</html>
+
+

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Preguntas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">Panel de Maestro</div>
+        <ul class="navbar-menu">
+            <li><a href="maestro.html">Inicio</a></li>
+            <li><a href="datos_maestro.html">Datos</a></li>
+            <li class="dropdown">
+                <a href="#">Ver Exámenes</a>
+                <div class="dropdown-content">
+                    <a href="crear_examen.html">Crear Examen</a>
+                    <a href="ver_examenes.html">Preview de Examen</a>
+                    <a href="imprimir_examen.html">Imprimir Examen</a>
+                    <a href="calificar_examen.html">Calificar Examen</a>
+                    <a href="resultados_examenes.html">Resultados de Exámenes</a>
+                </div>
+            </li>
+            <li><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+    
+    <h1>Crear o Modificar Examen y Preguntas</h1>
+    <table> 
+        <tr>
+            <td>
+                <label for="nombreExamen">Nombre del Examen:</label>
+                <input type="text" id="nombreExamen" placeholder="Introduce el nombre del examen" required>
+            </td>
+            <td>
+                <label for="materiaSelect">Selecciona la materia:</label>
+                <select id="materiaSelect" required>
+                    <option value="">Selecciona una materia</option>
+                    <option value="Matematicas">Matemáticas</option>
+                    <option value="Español">Español</option>
+                    <option value="Historia">Historia</option>
+                    <option value="Geografia">Geografía</option>
+                    <option value="Biologia">Biología</option>
+                    <option value="Fisica">Física</option>
+                    <option value="Quimica">Química</option>
+                    <option value="Civica">Cívica</option>
+                    <option value="Artes">Artes</option>
+                    <option value="Informatica">Informática</option>
+                    <option value="Etica">Ética</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <table width="1200px">
+        <tr>
+            <td> 
+                <button type="button" id="crearExamenBtn">Crear Nuevo Examen</button>
+            </td>
+            <td>
+                <button type="button" id="editarExamenBtn" class="hidden">Editar Examen</button>
+            </td>
+            <td>
+                <button type="button" id="eliminarExamenBtn" class="hidden">Eliminar Examen</button>
+            </td>
+        </tr>
+    </table>
+
+
+    <h2>Seleccionar Examen para Modificar</h2>
+    <select id="examenesSelect">
+        <option value="">Selecciona un examen</option>
+    </select>
+    <button type="button" id="cargarExamenBtn">Cargar Examen</button>
+
+    <div id="examenContainer" class="hidden">
+        <h2>Agregar Preguntas</h2>
+        <form id="question-form">
+            <input type="text" id="pregunta" placeholder="Pregunta" required>
+            <input type="text" id="opcionA" placeholder="Opción A" required>
+            <input type="text" id="opcionB" placeholder="Opción B" required>
+            <input type="text" id="opcionC" placeholder="Opción C">
+            <input type="text" id="opcionD" placeholder="Opción D">
+            <input type="text" id="opcionE" placeholder="Opción E">
+            
+            <table width = "800">
+                <tr>
+                    <td>
+                        <label class="custom-radio">
+                            <input type="radio" name="solucion" value="A" required>
+                            <div class="radio-circle"></div>
+                            <span>Opción A</span>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="custom-radio">
+                            <input type="radio" name="solucion" value="B" required>
+                            <div class="radio-circle"></div>
+                            <span>Opción B</span>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="custom-radio">
+                            <input type="radio" name="solucion" value="C">
+                            <div class="radio-circle"></div>
+                            <span>Opción C</span>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="custom-radio">
+                            <input type="radio" name="solucion" value="D">
+                            <div class="radio-circle"></div>
+                            <span>Opción D</span>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="custom-radio">
+                            <input type="radio" name="solucion" value="E">
+                            <div class="radio-circle"></div>
+                            <span>Opción E</span>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+            
+            <button type="submit">Agregar Pregunta</button>
+        </form>
+    </div>
+
+    <h2>Preguntas Creadas</h2>
+    <table id="preguntas-tabla">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Pregunta</th>
+                <th>Opción A</th>
+                <th>Opción B</th>
+                <th>Opción C</th>
+                <th>Opción D</th>
+                <th>Opción E</th>
+                <th>Solución</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getDatabase, ref, push, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCjRRBzlhKPtp74LoxjHpgPlg-CtGLyg-Y",
+          authDomain: "examen-e836d.firebaseapp.com",
+          projectId: "examen-e836d",
+          storageBucket: "examen-e836d.appspot.com",
+          messagingSenderId: "900551617182",
+          appId: "1:900551617182:web:3925b64bd5579711d1e98f",
+          databaseURL: "https://examen-e836d-default-rtdb.firebaseio.com/"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        let examenId = null;
+        let preguntaIdParaActualizar = null;
+
+        // Crear nuevo examen
+        document.getElementById("crearExamenBtn").addEventListener("click", function() {
+            const nombreExamen = document.getElementById("nombreExamen").value; // Obtener el valor del input
+            const materia = document.getElementById("materiaSelect").value; // Obtener el valor del select
+
+            if (nombreExamen && materia) {
+                const nuevoExamenRef = push(ref(database, 'examenes'));
+                set(nuevoExamenRef, { nombre: nombreExamen, materia: materia });
+                examenId = nuevoExamenRef.key;
+                document.getElementById("examenContainer").style.display = "block";
+                alert(`Examen '${nombreExamen}' creado para la materia '${materia}'. Ahora puedes agregar preguntas.`);
+                cargarExamenes();
+
+                // Limpiar los campos después de crear el examen
+                document.getElementById("nombreExamen").value = '';
+                document.getElementById("materiaSelect").value = '';
+            } else {
+                alert("Por favor, completa todos los campos.");
+            }
+        });
+
+        // Cargar exámenes en el menú desplegable
+        function cargarExamenes() {
+            const examenesSelect = document.getElementById("examenesSelect");
+            examenesSelect.innerHTML = '<option value="">Selecciona un examen</option>';
+
+            onValue(ref(database, 'examenes'), (snapshot) => {
+                const examenes = snapshot.val();
+                if (examenes) {
+                    for (let id in examenes) {
+                        const option = document.createElement("option");
+                        option.value = id;
+                        option.textContent = `${examenes[id].nombre} - ${examenes[id].materia}`;
+                        examenesSelect.appendChild(option);
+                    }
+                }
+            });
+        }
+
+        // Botón para cargar y editar el examen seleccionado
+        document.getElementById("cargarExamenBtn").addEventListener("click", function() {
+            examenId = document.getElementById("examenesSelect").value;
+            if (examenId) {
+                document.getElementById("examenContainer").style.display = "block";
+                mostrarPreguntas();
+                document.getElementById("editarExamenBtn").classList.remove("hidden");
+            }
+        });
+
+        // Editar nombre y materia del examen
+        document.getElementById("editarExamenBtn").addEventListener("click", function() {
+            const nuevoNombre = document.getElementById("nombreExamen").value; // Obtener el nuevo nombre del input
+            const nuevaMateria = document.getElementById("materiaSelect").value; // Obtener la nueva materia del select
+
+            if (nuevoNombre && nuevaMateria) {
+                update(ref(database, `examenes/${examenId}`), { nombre: nuevoNombre, materia: nuevaMateria });
+                cargarExamenes();
+                alert("Examen actualizado.");
+
+                // Limpiar los campos después de editar el examen
+                document.getElementById("nombreExamen").value = '';
+                document.getElementById("materiaSelect").value = '';
+            } else {
+                alert("Por favor, completa todos los campos.");
+            }
+        });
+
+        // Botón para cargar y editar el examen seleccionado
+        document.getElementById("cargarExamenBtn").addEventListener("click", function() {
+            examenId = document.getElementById("examenesSelect").value;
+            if (examenId) {
+                // Cargar nombre y materia del examen seleccionado
+                onValue(ref(database, `examenes/${examenId}`), (snapshot) => {
+                    const examen = snapshot.val();
+                    document.getElementById("nombreExamen").value = examen.nombre; // Llenar nombre
+                    document.getElementById("materiaSelect").value = examen.materia; // Llenar materia
+                });
+
+                document.getElementById("examenContainer").style.display = "block";
+                mostrarPreguntas();
+                document.getElementById("editarExamenBtn").classList.remove("hidden");
+            }
+        });
+
+        // Mostrar preguntas en la tabla
+        function mostrarPreguntas() {
+            const preguntasTablaBody = document.querySelector("#preguntas-tabla tbody");
+            preguntasTablaBody.innerHTML = "";
+
+            onValue(ref(database, 'examenes/' + examenId + '/preguntas'), (snapshot) => {
+                const preguntas = snapshot.val();
+                if (preguntas) {
+                    // Convertir las preguntas en un array y ordenarlas por el campo "orden"
+                    const preguntasArray = Object.entries(preguntas).sort((a, b) => a[1].orden - b[1].orden);
+
+                    preguntasArray.forEach(([id, pregunta], index) => {
+                        const row = document.createElement("tr");
+                        
+                        // Determinar si es el primer o último elemento
+                        const isFirst = index === 0;
+                        const isLast = index === preguntasArray.length - 1;
+
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${pregunta.pregunta}</td>
+                            <td>${pregunta.opciones.A}</td>
+                            <td>${pregunta.opciones.B}</td>
+                            <td>${pregunta.opciones.C || ''}</td>
+                            <td>${pregunta.opciones.D || ''}</td>
+                            <td>${pregunta.opciones.E || ''}</td>
+                            <td>${pregunta.solucion}</td>
+                            <td>
+                                <button class="editar-btn" data-id="${id}">Editar</button>
+                                <button class="eliminar-btn" data-id="${id}">Eliminar</button>
+                                <button class="mover-btn" data-id="${id}" data-direction="up" ${isFirst ? 'disabled' : ''}>↑</button>
+                                <button class="mover-btn" data-id="${id}" data-direction="down" ${isLast ? 'disabled' : ''}>↓</button>
+                            </td>
+                        `;
+                        preguntasTablaBody.appendChild(row);
+                    });
+
+                    // Agregar eventos a los botones de editar y eliminar
+                    document.querySelectorAll(".editar-btn").forEach(btn => {
+                        btn.addEventListener("click", function() {
+                            preguntaIdParaActualizar = this.getAttribute("data-id");
+                            cargarPreguntaParaEditar(preguntaIdParaActualizar);
+                        });
+                    });
+
+                    document.querySelectorAll(".eliminar-btn").forEach(btn => {
+                        btn.addEventListener("click", function() {
+                            const preguntaId = this.getAttribute("data-id");
+                            eliminarPregunta(preguntaId);
+                        });
+                    });
+
+                    document.querySelectorAll(".mover-btn").forEach(btn => {
+                        btn.addEventListener("click", function() {
+                            const preguntaId = this.getAttribute("data-id");
+                            const direction = this.getAttribute("data-direction");
+                            moverPregunta(preguntaId, direction);
+                        });
+                    });
+                }
+            });
+        }
+
+        // Cargar pregunta para editar
+        function cargarPreguntaParaEditar(id) {
+            onValue(ref(database, `examenes/${examenId}/preguntas/${id}`), (snapshot) => {
+                const pregunta = snapshot.val();
+                document.getElementById("pregunta").value = pregunta.pregunta;
+                document.getElementById("opcionA").value = pregunta.opciones.A;
+                document.getElementById("opcionB").value = pregunta.opciones.B;
+                document.getElementById("opcionC").value = pregunta.opciones.C || '';
+                document.getElementById("opcionD").value = pregunta.opciones.D || '';
+                document.getElementById("opcionE").value = pregunta.opciones.E || '';
+                document.querySelector(`input[name="solucion"][value="${pregunta.solucion}"]`).checked = true;
+
+                // Cambiar el botón de agregar a un botón de actualizar
+                const form = document.getElementById("question-form");
+                const submitButton = form.querySelector("button[type='submit']");
+                submitButton.textContent = "Actualizar Pregunta";
+
+                // Agregar evento para actualizar
+                form.onsubmit = function(event) {
+                    event.preventDefault();
+                    actualizarPregunta(id);
+                };
+            });
+        }
+
+        // Actualizar pregunta en Firebase
+        function actualizarPregunta(id) {
+            const preguntaData = {
+                pregunta: document.getElementById("pregunta").value,
+                opciones: {
+                    A: document.getElementById("opcionA").value,
+                    B: document.getElementById("opcionB").value,
+                    C: document.getElementById("opcionC").value || null,
+                    D: document.getElementById("opcionD").value || null,
+                    E: document.getElementById("opcionE").value || null,
+                },
+                solucion: document.querySelector('input[name="solucion"]:checked').value
+            };
+
+            update(ref(database, `examenes/${examenId}/preguntas/${id}`), preguntaData)
+                .then(() => {
+                    alert("Pregunta actualizada.");
+                    mostrarPreguntas();
+                    document.getElementById("question-form").reset();
+                    document.getElementById("question-form").onsubmit = null; // Resetear el evento de envío
+                    document.getElementById("question-form").querySelector("button[type='submit']").textContent = "Agregar Pregunta"; // Cambiar de vuelta el texto del botón
+                });
+        }
+
+        // Eliminar pregunta
+        function eliminarPregunta(id) {
+            remove(ref(database, `examenes/${examenId}/preguntas/${id}`))
+                .then(() => {
+                    alert("Pregunta eliminada.");
+                    mostrarPreguntas();
+                });
+        }
+
+        // Mover pregunta
+        function moverPregunta(id, direction) {
+            // Leer las preguntas desde la base de datos
+            onValue(ref(database, `examenes/${examenId}/preguntas`), (snapshot) => {
+                const preguntas = snapshot.val();
+                const preguntasArray = Object.entries(preguntas); // Convertir a arreglo
+                const index = preguntasArray.findIndex(([preguntaId]) => preguntaId === id);
+                
+                // Verificamos la dirección para mover la pregunta
+                if (direction === "up" && index > 0) {
+                    // Intercambiamos con la pregunta anterior
+                    let temp = preguntasArray[index - 1]; // Guardamos la pregunta anterior
+                    preguntasArray[index - 1] = preguntasArray[index]; // Reemplazamos la pregunta actual con la anterior
+                    preguntasArray[index] = temp; // Colocamos la anterior en la posición actual
+                } else if (direction === "down" && index < preguntasArray.length - 1) {
+                    // Intercambiamos con la pregunta siguiente
+                    let temp = preguntasArray[index + 1]; // Guardamos la pregunta siguiente
+                    preguntasArray[index + 1] = preguntasArray[index]; // Reemplazamos la pregunta actual con la siguiente
+                    preguntasArray[index] = temp; // Colocamos la siguiente en la posición actual
+                } else {
+                    alert("No se puede mover la pregunta en esa dirección.");
+                    return; // Salimos si no se puede mover
+                }
+
+                // Preparamos los datos para actualizar las preguntas en Firebase
+                const updates = {};
+                preguntasArray.forEach(([preguntaId], nuevoIndex) => {
+                    updates[`examenes/${examenId}/preguntas/${preguntaId}`] = {
+                        ...preguntas[preguntaId],
+                        orden: nuevoIndex + 1 // Actualizamos el campo de orden (empezando desde 1)
+                    };
+                });
+
+                // Actualizamos Firebase con los nuevos órdenes
+                update(ref(database), updates)
+                    .then(() => {
+                        alert("Pregunta movida.");
+                        mostrarPreguntas(); // Llama a mostrarPreguntas después de mover
+                    })
+                    .catch((error) => {
+                        console.error("Error al mover la pregunta:", error);
+                        alert("Hubo un error al mover la pregunta. Inténtalo de nuevo.");
+                    });
+            });
+        }
+
+        // Manejar la creación de preguntas
+        document.getElementById("question-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const preguntaData = {
+                pregunta: document.getElementById("pregunta").value,
+                opciones: {
+                    A: document.getElementById("opcionA").value,
+                    B: document.getElementById("opcionB").value,
+                    C: document.getElementById("opcionC").value || null,
+                    D: document.getElementById("opcionD").value || null,
+                    E: document.getElementById("opcionE").value || null,
+                },
+                solucion: document.querySelector('input[name="solucion"]:checked').value
+            };
+
+            const preguntasRef = ref(database, `examenes/${examenId}/preguntas`);
+            const nuevaPreguntaRef = push(preguntasRef);
+            set(nuevaPreguntaRef, preguntaData)
+                .then(() => {
+                    alert("Pregunta agregada.");
+                    document.getElementById("question-form").reset();
+                    mostrarPreguntas();
+                })
+                .catch((error) => {
+                    console.error("Error al agregar la pregunta:", error);
+                    alert("Ocurrió un error al agregar la pregunta.");
+                });
+        });
+
+        // Resetear el formulario
+        function resetForm() {
+            document.getElementById("question-form").reset();
+            const submitButton = document.querySelector("#question-form button[type='submit']");
+            submitButton.textContent = "Agregar Pregunta";
+            preguntaIdParaActualizar = null;
+        }
+
+        // Agregar el evento para eliminar el examen
+        document.getElementById("eliminarExamenBtn").addEventListener("click", function() {
+            if (examenId) {
+                const confirmacion = confirm("¿Estás seguro de que deseas eliminar este examen?");
+                if (confirmacion) {
+                    remove(ref(database, `examenes/${examenId}`))
+                        .then(() => {
+                            alert("Examen eliminado.");
+                            cargarExamenes(); // Volver a cargar la lista de exámenes
+                            document.getElementById("examenContainer").style.display = "none"; // Ocultar el contenedor del examen
+                            examenId = null; // Limpiar el ID del examen
+                        })
+                        .catch((error) => {
+                            console.error("Error al eliminar el examen:", error);
+                            alert("Hubo un error al eliminar el examen. Inténtalo de nuevo.");
+                        });
+                }
+            } else {
+                alert("No hay examen seleccionado para eliminar.");
+            }
+        });
+
+        // Inicializar
+        cargarExamenes();
+    </script>
+</body>
+</html>

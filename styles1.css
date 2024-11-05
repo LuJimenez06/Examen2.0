@@ -1,0 +1,127 @@
+/* Estilos generales */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f4f3;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+h1 {
+    color: #2e7d32;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 36px;
+}
+
+/* Estilo del formulario de login */
+form {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Para centrar los elementos dentro del formulario */
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    color: #4caf50;
+    text-align: left;
+    margin-bottom: 8px;
+    width: 100%; /* Hace que los labels y los inputs ocupen el ancho completo */
+}
+
+input[type="text"], input[type="password"], select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+table {
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Para centrar los botones */
+}
+
+td {
+    text-align: center;
+    padding: 10px;
+}
+
+button {
+    background-color: #2e7d32;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #1b5e20;
+}
+
+/* Estilos del botón de registro */
+#open-register-modal {
+    background-color: #28722c;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#open-register-modal:hover {
+    background-color: #66bb6a;
+}
+
+/* Estilos para el modal */
+.modal {
+    display: none; /* Se oculta por defecto */
+    position: fixed; /* Cambiar a fixed para centrar en la ventana */
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center; /* Para centrar horizontalmente */
+    align-items: center; /* Para centrar verticalmente */
+    display: flex; /* Usar flexbox para centrar el contenido */
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    width: 30%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover, .close:focus {
+    color: #000;
+    cursor: pointer;
+}

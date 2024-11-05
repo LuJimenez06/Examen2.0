@@ -1,0 +1,64 @@
+/* examen_resultado.css */
+/* Añadir margen superior al contenedor del menú */
+.navbar {
+    margin-bottom: 20px; /* Separa el menú de la parte superior */
+}
+
+/* Asegúrate de que el botón se mantenga centrado */
+#calcularBtn {
+    width: 200px;                     /* Ancho fijo del botón */
+    margin: 20px auto;               /* Margen alrededor del botón para centrarlo */
+    display: block;                   /* Hace que el botón sea un bloque para centrarlo */
+    height: 50px;                     /* Establecer una altura fija para el botón */
+}
+
+/* Ajustar la altura del menú desplegable */
+.form-group {
+    margin-bottom: 25px; /* Espacio inferior para separar el menú del botón */
+}
+
+/* Añadir margen inferior a los resultados para separar el botón */
+.resultados-container {
+    margin-top: 20px; /* Espacio superior para separar el botón de las tarjetas */
+    display: flex;
+    flex-wrap: wrap; /* Permite que las tarjetas se ajusten a varias filas */
+    justify-content: space-between; /* Espaciado uniforme entre tarjetas */
+}
+
+.resultados-container .card {
+    margin-bottom: 20px; /* Espaciado inferior entre tarjetas */
+    flex: 1 1 calc(33% - 20px); /* Tres tarjetas por fila con un margen */
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho */
+}
+
+/* Estilos generales para el contenedor de resultados */
+#resultados {
+    display: flex;                     /* Usar flexbox para organizar las tarjetas */
+    flex-wrap: wrap;                  /* Permitir que las tarjetas fluyan a la siguiente línea */
+    gap: 20px;                        /* Espacio entre las tarjetas */
+    justify-content: center;           /* Centrar las tarjetas en la página */
+    margin-top: 20px;                 /* Espacio superior para separar del botón */
+}
+
+/* Estilo de las tarjetas para mantener un tamaño consistente */
+.card {
+    flex: 1 1 calc(33.333% - 20px);   /* Hacer que las tarjetas ocupen el 33.33% del ancho del contenedor menos el espacio del gap */
+    max-width: 300px;                 /* Ancho máximo de las tarjetas */
+    box-sizing: border-box;           /* Incluir el padding y el border en el tamaño total */
+}
+
+/* Estilos opcionales para mejorar la apariencia de las tarjetas */
+.card-header {
+    background-color: #007bff;        /* Color de fondo del encabezado de la tarjeta */
+    color: white;                      /* Color del texto del encabezado */
+    font-weight: bold;                 /* Negrita para el texto del encabezado */
+}
+
+.card-body {
+    padding: 15px;                     /* Espacio interno en el cuerpo de la tarjeta */
+}
+
+/* Ajustes para asegurarse de que el contenedor de resultados no desborde */
+.container {
+    padding-bottom: 20px;              /* Añadir espacio en la parte inferior del contenedor para evitar que se superponga a la barra de navegación */
+}

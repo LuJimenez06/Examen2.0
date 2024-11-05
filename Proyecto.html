@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Preguntas</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <!-- Formulario y tabla de preguntas, como antes -->
+    <h1>Crear Pregunta</h1>
+    <form id="question-form">
+        <label for="pregunta">Pregunta:</label>
+        <input type="text" id="pregunta" name="pregunta" required><br><br>
+
+        <label for="opcionA">Opción A:</label>
+        <input type="text" id="opcionA" name="opcionA" required><br><br>
+
+        <label for="opcionB">Opción B:</label>
+        <input type="text" id="opcionB" name="opcionB" required><br><br>
+
+        <label for="opcionC">Opción C:</label>
+        <input type="text" id="opcionC" name="opcionC" required><br><br>
+
+        <label>Selecciona la opción correcta:</label><br>
+      <table>
+        <tr>
+          <td>
+            <label for="solucionA">A</label><input type="radio" id="solucionA" name="solucion" value="A" required>
+          </td>
+          <td>
+            <label for="solucionB">B</label><input type="radio" id="solucionB" name="solucion" value="B" required>
+          </td>
+          <td>
+            <label for="solucionC">C</label><input type="radio" id="solucionC" name="solucion" value="C" required>
+          </td>
+        </tr>
+      </table>
+        <button type="submit">Agregar Pregunta</button>
+    </form>
+
+    <h2>Preguntas Creadas</h2>
+    <table id="preguntas-tabla">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Pregunta</th>
+                <th>Opción A</th>
+                <th>Opción B</th>
+                <th>Opción C</th>
+                <th>Solución</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script type="module">
+        // Import the necessary Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+      
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyCjRRBzlhKPtp74LoxjHpgPlg-CtGLyg-Y",
+          authDomain: "examen-e836d.firebaseapp.com",
+          projectId: "examen-e836d",
+          storageBucket: "examen-e836d.appspot.com",
+          messagingSenderId: "900551617182",
+          appId: "1:900551617182:web:3925b64bd5579711d1e98f",
+          databaseURL: "https://examen-e836d-default-rtdb.firebaseio.com/" // Asegúrate de incluir la URL de la base de datos
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+      
+        // Initialize Realtime Database and get a reference to the service
+        const database = getDatabase(app);
+      
+        // Manejar el formulario de preguntas
+        document.getElementById("question-form").addEventListener("submit", function(event) {
+          event.preventDefault();
+      
+          // Obtener los valores del formulario
+          const pregunta = document.getElementById("pregunta").value;
+          const opcionA = document.getElementById("opcionA").value;
+          const opcionB = document.getElementById("opcionB").value;
+          const opcionC = document.getElementById("opcionC").value;
+          const solucion = document.querySelector('input[name="solucion"]:checked').value;
+      
+          // Referencia a la base de datos
+          const nuevaPreguntaRef = push(ref(database, 'preguntas'));
+      
+          // Crear un objeto para la nueva pregunta
+          const nuevaPregunta = {
+            pregunta: pregunta,
+            opcionA: opcionA,
+            opcionB: opcionB,
+            opcionC: opcionC,
+            solucion: solucion
+          };
+      
+          // Guardar la nueva pregunta en Firebase
+          set(nuevaPreguntaRef, nuevaPregunta)
+            .then(() => {
+              console.log('Pregunta guardada correctamente');
+              agregarPreguntaATabla(nuevaPregunta, nuevaPreguntaRef.key);
+            })
+            .catch(error => {
+              console.log('Error al guardar en Firebase', error);
+            });
+      
+          // Limpiar el formulario después de agregar la pregunta
+          document.getElementById("question-form").reset();
+        });
+      
+        // Función para agregar la pregunta a la tabla
+        function agregarPreguntaATabla(pregunta, id) {
+          const tabla = document.getElementById("preguntas-tabla").getElementsByTagName("tbody")[0];
+      
+          // Crear una nueva fila
+          const nuevaFila = tabla.insertRow();
+      
+          // Crear las celdas de la fila
+          const idCelda = nuevaFila.insertCell(0);
+          const preguntaCelda = nuevaFila.insertCell(1);
+          const opcionACelda = nuevaFila.insertCell(2);
+          const opcionBCelda = nuevaFila.insertCell(3);
+          const opcionCCelda = nuevaFila.insertCell(4);
+          const solucionCelda = nuevaFila.insertCell(5);
+      
+          // Asignar los valores a cada celda
+          idCelda.textContent = id;
+          preguntaCelda.textContent = pregunta.pregunta;
+          opcionACelda.textContent = pregunta.opcionA;
+          opcionBCelda.textContent = pregunta.opcionB;
+          opcionCCelda.textContent = pregunta.opcionC;
+          solucionCelda.textContent = pregunta.solucion;
+        }
+      
+        // Cargar preguntas guardadas desde Firebase al cargar la página
+        onValue(ref(database, 'preguntas'), (snapshot) => {
+          const preguntas = snapshot.val();
+          const tabla = document.getElementById("preguntas-tabla").getElementsByTagName("tbody")[0];
+          tabla.innerHTML = ''; // Limpiar la tabla antes de cargar los datos
+      
+          for (let id in preguntas) {
+            agregarPreguntaATabla(preguntas[id], id);
+          }
+        });
+      </script>
+</body>
+</html>

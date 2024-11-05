@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Alumno</title>
+    <link rel="stylesheet" href="alumno.css">
+    <style>
+        .user-info {
+            font-size: 1.2em;
+            margin: 10px 0;
+            color: #333;
+        }
+    </style>
+    <script src="auth.js"></script> 
+</head>
+<body>
+    <!-- Barra de navegación -->
+    <nav class="navbar">
+        <div class="navbar-brand">Panel de Alumnos</div>
+        <ul class="navbar-menu">
+            <li><a href="alumno.html?studentId=alumno1">Inicio</a></li>
+            <li><a href="datos_alumno.html?studentId=alumno1">Datos Personales</a></li>
+            <li><a href="materias.html?studentId=alumno1">Materias</a></li>
+            <li><a href="examenes_alumno.html?studentId=alumno1">Exámenes</a></li>
+            <li><a href="index.html" id="logout">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <!-- Muestra el nombre del usuario -->
+    <div class="user-info" id="user-info"></div>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <h1>Bienvenido, Alumno</h1>
+        <p>En este panel puedes gestionar tus datos, revisar las materias y acceder a tus exámenes.</p>
+
+        <div class="dashboard-sections">
+            <div class="dashboard-section">
+                <h2>Datos Personales</h2>
+                <p>Consulta y actualiza tu información personal.</p>
+                <button onclick="location.href='datos_alumno.html?studentId=alumno1'">Ver Datos</button>
+            </div>
+
+            <div class="dashboard-section">
+                <h2>Materias</h2>
+                <p>Revisa las materias en las que estás inscrito.</p>
+                <button onclick="location.href='materias.html?studentId=alumno1'">Ver Materias</button>
+            </div>
+
+            <div class="dashboard-section">
+                <h2>Exámenes</h2>
+                <p>Accede a tus exámenes y consulta resultados anteriores.</p>
+                <button onclick="location.href='examenes_alumno.html?studentId=alumno1'">Ver Exámenes</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

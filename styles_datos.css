@@ -1,0 +1,171 @@
+/* Estilos generales */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f0f4f3;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Barra de navegación */
+.navbar {
+    background-color: #4CAF50;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar-menu {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+}
+
+.navbar-menu li a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.navbar-menu li a:hover {
+    background-color: #388E3C;
+}
+
+/* Contenido principal */
+.main-content {
+    padding: 6rem 2rem 2rem;
+    text-align: center;
+}
+
+/* Contenedor del docente */
+.teacher-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+/* Contenedor de la foto del docente */
+.teacher-photo-container {
+    flex: 0 0 150px; /* Ancho fijo para la foto */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.teacher-photo-container label {
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+/* Vista previa de la fotografía */
+#teacher-photo-preview {
+    margin-top: 10px;
+    width: 100px; /* Ajusta el tamaño de la imagen */
+    height: auto;
+    border-radius: 50%; /* Imagen circular */
+    border: 2px solid #4CAF50;
+}
+
+/* Formulario */
+form#teacher-form {
+    flex: 1; /* Ocupa el espacio restante */
+    margin-left: 20px; /* Espacio entre la foto y el formulario */
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+form label {
+    font-weight: bold;
+    color: #4CAF50;
+    display: block;
+    margin-top: 10px;
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form input[type="file"] {
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+form button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+    margin-right: 10px; /* Espacio entre botones */
+}
+
+form button:hover {
+    background-color: #388E3C;
+}
+
+.button-group {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Sección de perfil */
+.profile-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.profile-section {
+    flex: 1; /* Ocupa el espacio restante */
+    margin-left: 20px; /* Espacio entre la imagen y la sección del perfil */
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-section h2 {
+    color: #4CAF50;
+    margin-bottom: 1rem;
+}
+
+/* Mensaje de error */
+.error-message {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}

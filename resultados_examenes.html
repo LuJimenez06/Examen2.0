@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de Exámenes</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="examen_resultado.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">Panel de Maestro</div>
+        <ul class="navbar-menu">
+            <li><a href="maestro.html">Inicio</a></li>
+            <li><a href="datos_maestro.html">Datos</a></li>
+            <li class="dropdown">
+                <a href="#" onclick="toggleDropdown(event)">Ver Exámenes</a>
+                <div class="dropdown-content">
+                    <a href="crear_examen.html">Crear Examen</a>
+                    <a href="ver_examenes.html">Preview de Examen</a>
+                    <a href="imprimir_examen.html">Imprimir Examen</a>
+                    <a href="calificar_examen.html">Calificar Examen</a>
+                    <a href="resultados_examenes.html">Resultados de Exámenes</a>
+                </div>
+            </li>
+            <li><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <h1>Resultados de Exámenes</h1>
+        <div class="form-group">
+            <label for="examenSelect">Seleccione un examen:</label>
+        </div>
+        <table>
+            <tr>
+                <td>
+                    <select id="examenSelect" class="form-control">
+                        <option value="">Seleccione un examen</option>
+                    </select>
+                </td>
+                <td>
+                    <button id="calcularBtn" class="btn btn-primary">Comprobar Resultados</button>
+                </td>
+            </tr>
+        </table>
+        
+        <div id="resultados" class="resultados-container">
+        </div>
+    </div>
+    
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjRRBzlhKPtp74LoxjHpgPlg-CtGLyg-Y",
+            authDomain: "examen-e836d.firebaseapp.com",
+            projectId: "examen-e836d",
+            storageBucket: "examen-e836d.appspot.com",
+            messagingSenderId: "900551617182",
+            appId: "1:900551617182:web:3925b64bd5579711d1e98f",
+            databaseURL: "https://examen-e836d-default-rtdb.firebaseio.com/"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+    
+        function cargarExamenes() {
+            const examenesRef = ref(db, 'examenes');
+            const examenSelect = document.getElementById("examenSelect");
+    
+            onValue(examenesRef, (snapshot) => {
+                const examenesData = snapshot.val();
+                if (examenesData) {
+                    for (const [examenId, examen] of Object.entries(examenesData)) {
+                        const option = document.createElement("option");
+                        option.value = examenId;
+                        option.textContent = examen.nombre;
+                        examenSelect.appendChild(option);
+                    }
+                } else {
+                    console.error("No se encontraron exámenes.");
+                }
+            });
+        }
+    
+        function calcularResultados() {
+            const resultadosDiv = document.getElementById("resultados");
+            resultadosDiv.innerHTML = ""; // Limpiar resultados previos
+            const examId = document.getElementById("examenSelect").value;
+    
+            if (!examId) {
+                console.error("Por favor, seleccione un examen.");
+                return;
+            }
+    
+            const alumnosRef = ref(db, 'alumnos');
+            const examenesRef = ref(db, 'examenes/' + examId);
+    
+            onValue(alumnosRef, (snapshot) => {
+                const alumnosData = snapshot.val();
+                if (!alumnosData) {
+                    console.error("No se encontraron alumnos.");
+                    return;
+                }
+    
+                onValue(examenesRef, (snapshot) => {
+                    const examenData = snapshot.val();
+                    if (!examenData) {
+                        console.error("No se encontraron datos del examen.");
+                        return;
+                    }
+    
+                    for (const [id, alumno] of Object.entries(alumnosData)) {
+                        const examen = alumno.examenes[examId];
+    
+                        if (examen) {
+                            let aciertos = 0;
+                            const totalPreguntas = Object.keys(examenData.preguntas).length;
+                            const respuestas = examen.respuestas;
+    
+                            // Crear la tarjeta del alumno
+                            const card = document.createElement("div");
+                            card.className = "card mb-3";
+                            card.innerHTML = `
+                                <div class="card-header">
+                                    <h5>${alumno.nombreCompleto}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Nombre del Alumno:</strong> ${alumno.nombreCompleto}</p>
+                                    <p><strong>Materia:</strong> ${examenData.materia}</p>
+                                    <p><strong>Examen:</strong> ${examenData.nombre}</p>
+                                    <h6>Detalles de Respuestas:</h6>
+                                    <ul class="list-group">`;
+    
+                            // Mostrar detalles de las respuestas
+                            for (const [preguntaId, respuesta] of Object.entries(respuestas)) {
+                                const solucion = examenData.preguntas[preguntaId].solucion;
+                                const esCorrecta = solucion === respuesta;
+                                if (esCorrecta) {
+                                    aciertos++; // Contar aciertos
+                                }
+                                card.innerHTML += `
+                                    <li class="list-group-item">
+                                        Pregunta ${parseInt(preguntaId) + 1}: 
+                                        Respuesta: ${respuesta} 
+                                        - ${esCorrecta ? '<span class="text-success">Correcta</span>' : '<span class="text-danger">Incorrecta</span>'}
+                                    </li>`;
+                            }
+    
+                            // Calcular la calificación
+                            const calificacion = (aciertos / totalPreguntas * 100).toFixed(2);
+                            card.innerHTML += `
+                                    </ul>
+                                    <p><strong>Aciertos:</strong> ${aciertos} de ${totalPreguntas}</p>
+                                    <p><strong>Calificación:</strong> ${calificacion}%</p>
+                                    <canvas id="graficoResultados${id}"></canvas>
+                                </div>
+                            `;
+                            resultadosDiv.appendChild(card);
+    
+                            // Datos para gráfico de pastel (resultados)
+                            const ctxResultados = document.getElementById(`graficoResultados${id}`).getContext('2d');
+                            const resultadosData = [aciertos, totalPreguntas - aciertos];
+                            new Chart(ctxResultados, {
+                                type: 'pie',
+                                data: {
+                                    labels: ['Correctas', 'Incorrectas'],
+                                    datasets: [{
+                                        data: resultadosData,
+                                        backgroundColor: ['#28a745', '#dc3545'],
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            position: 'top',
+                                        },
+                                        title: {
+                                            display: true,
+                                            text: 'Resultados de Respuestas'
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+        }
+    
+        document.getElementById('calcularBtn').onclick = calcularResultados;
+    
+        window.onload = () => {
+            cargarExamenes();
+        };
+    </script>    
+</body>
+</html>

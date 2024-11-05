@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario Completo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Cuestionario</h1>
+    <form id="cuestionario"></form>
+
+    <!-- Firebase y JavaScript -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+      
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyCjRRBzlhKPtp74LoxjHpgPlg-CtGLyg-Y",
+          authDomain: "examen-e836d.firebaseapp.com",
+          projectId: "examen-e836d",
+          storageBucket: "examen-e836d.appspot.com",
+          messagingSenderId: "900551617182",
+          appId: "1:900551617182:web:3925b64bd5579711d1e98f",
+          databaseURL: "https://examen-e836d-default-rtdb.firebaseio.com/" // Asegúrate de incluir la URL de la base de datos
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const cuestionarioForm = document.getElementById("cuestionario");
+
+        // Cargar preguntas de Firebase y construir el cuestionario
+        onValue(ref(database, 'preguntas'), (snapshot) => {
+            const preguntas = snapshot.val();
+            cuestionarioForm.innerHTML = '';
+
+            for (let id in preguntas) {
+                const preguntaObj = preguntas[id];
+                const preguntaDiv = document.createElement("div");
+                preguntaDiv.classList.add("pregunta");
+
+                // Agregar la pregunta y el tipo de entrada correspondiente
+                preguntaDiv.innerHTML = `<p><strong>Pregunta:</strong> ${preguntaObj.pregunta}</p>`;
+
+                if (preguntaObj.opcionA && preguntaObj.opcionB) {
+                    // Pregunta de selección múltiple
+                    preguntaDiv.innerHTML += `
+                        <div>
+                            <label><input type="radio" name="${id}" value="A"> A: ${preguntaObj.opcionA}</label><br>
+                            <label><input type="radio" name="${id}" value="B"> B: ${preguntaObj.opcionB}</label><br>
+                            <label><input type="radio" name="${id}" value="C"> C: ${preguntaObj.opcionC}</label><br>
+                            ${preguntaObj.opcionD ? `<label><input type="radio" name="${id}" value="D"> D: ${preguntaObj.opcionD}</label><br>` : ""}
+                            ${preguntaObj.opcionE ? `<label><input type="radio" name="${id}" value="E"> E: ${preguntaObj.opcionE}</label><br>` : ""}
+                        </div>
+                    `;
+                } else {
+                    // Pregunta de texto libre
+                    preguntaDiv.innerHTML += `<input type="text" name="${id}" placeholder="Escribe tu respuesta aquí" style="width:100%; padding:8px; margin-top:5px;">`;
+                }
+
+                cuestionarioForm.appendChild(preguntaDiv);
+            }
+        });
+    </script>
+</body>
+</html>
